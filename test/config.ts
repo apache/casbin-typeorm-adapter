@@ -22,7 +22,7 @@ export const connectionConfig: DataSourceOptions = SHOULD_USE_MYSQL
       dropSchema: true,
     }
   : {
-      type: 'sqlite',
+      type: 'better-sqlite3',
       database: ':memory:',
       dropSchema: true,
     };
