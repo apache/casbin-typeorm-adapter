@@ -76,7 +76,6 @@ export default class TypeORMAdapter
 
     const defaults = {
       synchronize: true,
-      name: 'node-casbin-official',
     };
     if ((option as ExistentConnection).connection) {
       a = new TypeORMAdapter(option, adapterConfig);
@@ -265,20 +264,10 @@ export default class TypeORMAdapter
     oldRule: string[],
     newRule: string[],
   ): Promise<void> {
-    const { v0, v1, v2, v3, v4, v5, v6 } = this.savePolicyLine(ptype, oldRule);
     const newLine = this.savePolicyLine(ptype, newRule);
 
     const foundLine = await this.getRepository().findOneOrFail({
-      where: {
-        ptype,
-        v0,
-        v1,
-        v2,
-        v3,
-        v4,
-        v5,
-        v6,
-      },
+      where: this.toWhere(this.savePolicyLine(ptype, oldRule)),
     });
 
     await this.getRepository().save(Object.assign(foundLine, newLine));
@@ -289,9 +278,7 @@ export default class TypeORMAdapter
    */
   public async removePolicy(sec: string, ptype: string, rule: string[]) {
     const line = this.savePolicyLine(ptype, rule);
-    await this.getRepository().delete({
-      ...line,
-    });
+    await this.getRepository().delete(this.toWhere(line));
   }
 
   /**
@@ -372,9 +359,7 @@ export default class TypeORMAdapter
       }
     }
 
-    await this.getRepository().delete({
-      ...line,
-    });
+    await this.getRepository().delete(this.toWhere(line));
   }
 
   private getCasbinRuleConstructor(): CasbinRuleConstructor {
@@ -406,5 +391,13 @@ export default class TypeORMAdapter
 
   private getRepository(): Repository<GenericCasbinRule> {
     return this.typeorm.getRepository(this.getCasbinRuleConstructor());
+  }
+
+  private toWhere(
+    line: GenericCasbinRule,
+  ): FindOptionsWhere<GenericCasbinRule> {
+    return Object.fromEntries(
+      Object.entries(line).filter(([, v]) => v !== undefined),
+    ) as FindOptionsWhere<GenericCasbinRule>;
   }
 }
