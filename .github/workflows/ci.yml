@@ -93,7 +93,7 @@ jobs:
           node-version: ^20
 
       - name: Run semantic-release
-        if: github.repository == 'node-casbin/typeorm-adapter' && github.event_name == 'push'
+        if: github.repository == 'apache/casbin-typeorm-adapter' && github.event_name == 'push'
         run: |
           yarn install
           yarn run prepublish

@@ -1,7 +1,7 @@
 TypeORM Adapter
 ====
-[![CI](https://github.com/node-casbin/typeorm-adapter/actions/workflows/ci.yml/badge.svg)](https://github.com/node-casbin/typeorm-adapter/actions/workflows/ci.yml)
-[![Coverage Status](https://coveralls.io/repos/github/node-casbin/typeorm-adapter/badge.svg?branch=master)](https://coveralls.io/github/node-casbin/typeorm-adapter?branch=master)
+[![CI](https://github.com/apache/casbin-typeorm-adapter/actions/workflows/ci.yml/badge.svg)](https://github.com/apache/casbin-typeorm-adapter/actions/workflows/ci.yml)
+[![Coverage Status](https://coveralls.io/repos/github/apache/casbin-typeorm-adapter/badge.svg?branch=master)](https://coveralls.io/github/apache/casbin-typeorm-adapter?branch=master)
 [![NPM version][npm-image]][npm-url]
 [![NPM download][download-image]][download-url]
 [![Discord](https://img.shields.io/discord/1022748306096537660?logo=discord&label=discord&color=5865F2)](https://discord.gg/S5UjpzGZjN)
