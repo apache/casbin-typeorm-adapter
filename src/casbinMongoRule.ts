@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { ObjectId } from 'mongodb';
+import type { ObjectId } from 'mongodb';
 import { BaseEntity, Column, Entity, ObjectIdColumn } from 'typeorm';
 
 @Entity()
