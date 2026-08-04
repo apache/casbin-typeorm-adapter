@@ -34,6 +34,12 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ^20
+          registry-url: 'https://registry.npmjs.org'
+
       - name: Parse tag
         id: meta
         run: |
@@ -68,15 +74,39 @@ jobs:
           } >> "$GITHUB_OUTPUT"
 
       - name: Build source release tarball
+        env:
+          ARTIFACT: ${{ steps.meta.outputs.artifact }}
+          TAG: ${{ steps.meta.outputs.tag }}
+          BASE_VERSION: ${{ steps.meta.outputs.base_version }}
         run: |
           set -euo pipefail
-          ARTIFACT="${{ steps.meta.outputs.artifact }}"
-          mkdir -p dist-release
-          # git archive is deterministic for a given tag and excludes .git entirely.
-          git archive --format=tar.gz \
-            --prefix="${ARTIFACT}/" \
-            -o "dist-release/${ARTIFACT}.tar.gz" \
-            "${{ steps.meta.outputs.tag }}"
+          STAGE="$(mktemp -d)"
+          mkdir -p "$STAGE/$ARTIFACT" dist-release
+
+          # Stage exactly what git tracks at the tag: no .git, honours export-ignore.
+          git archive --format=tar "$TAG" | tar -x -C "$STAGE/$ARTIFACT"
+
+          # package.json in the repo carries a 0.0.0 placeholder - the tag is the
+          # source of truth, so stamp the real version into the source release.
+          # Deliberately a surgical text edit rather than `npm pkg set`, which
+          # also re-sorts dependencies: the tarball must differ from the tagged
+          # tree in the version line and nothing else. Re-parsed afterwards so a
+          # regex that hit the wrong key fails the build instead of shipping.
+          node -e 'const fs=require("fs");const[f,v]=process.argv.slice(1);const s=fs.readFileSync(f,"utf8");const o=s.replace(/"version":\s*"[^"]*"/,"\"version\": \""+v+"\"");fs.writeFileSync(f,o);const p=JSON.parse(o);if(p.version!==v){console.error("version stamp failed");process.exit(1);}' \
+            "$STAGE/$ARTIFACT/package.json" "$BASE_VERSION"
+          grep '"version"' "$STAGE/$ARTIFACT/package.json"
+
+          # Deterministic tarball: fixed entry order, mtime pinned to the tagged
+          # commit, no uid/gid, and gzip -n to drop its timestamp. Re-running this
+          # workflow on the same tag therefore reproduces identical bytes, so the
+          # RM's signature always matches what anyone else can rebuild.
+          COMMIT_TS="$(git log -1 --format=%ct "$TAG")"
+          tar --sort=name --format=gnu \
+              --mtime="@${COMMIT_TS}" \
+              --owner=0 --group=0 --numeric-owner \
+              -C "$STAGE" -cf - "$ARTIFACT" \
+            | gzip -n > "dist-release/${ARTIFACT}.tar.gz"
+
           cd dist-release
           sha512sum "${ARTIFACT}.tar.gz" > "${ARTIFACT}.tar.gz.sha512"
           sha512sum -c "${ARTIFACT}.tar.gz.sha512"
@@ -134,13 +164,6 @@ jobs:
           else
             gh release create "$TAG" --title "$TITLE" --notes-file release-notes.md "${KIND[@]}" dist-release/*
           fi
-
-      - name: Set up Node.js
-        if: steps.meta.outputs.is_rc == 'false'
-        uses: actions/setup-node@v4
-        with:
-          node-version: ^20
-          registry-url: 'https://registry.npmjs.org'
 
       - name: Publish to npm
         if: steps.meta.outputs.is_rc == 'false'
