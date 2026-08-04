@@ -31,6 +31,10 @@ You may find other 3rd-party supported DBs in TypeORM website or other places.
 
     npm install typeorm-adapter
 
+You also need to install the driver for the database you use, e.g. `mysql2`, `pg`, `better-sqlite3` or `mongodb`.
+
+`mongodb` is declared as an optional peer dependency, so it is not installed unless you ask for it. Importing `typeorm-adapter` never loads it at runtime. However, the shipped type declarations for `CasbinMongoRule` still reference the `ObjectId` type from `mongodb`. If you do not use MongoDB and compile with `skipLibCheck: false`, TypeScript reports `TS2307: Cannot find module 'mongodb'` — set `skipLibCheck: true` in your `tsconfig.json` (the setting recommended by the TypeScript team and enabled by default in most scaffolding tools), or install `mongodb` as a dev dependency.
+
 ## Simple Example
 
 ```typescript

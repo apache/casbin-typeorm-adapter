@@ -37,6 +37,14 @@
     "reflect-metadata": "^0.2.2",
     "typeorm": "^1.0.0"
   },
+  "peerDependencies": {
+    "mongodb": "^7.0.0"
+  },
+  "peerDependenciesMeta": {
+    "mongodb": {
+      "optional": true
+    }
+  },
   "files": [
     "lib",
     "examples"
