@@ -93,24 +93,3 @@ jobs:
 
       - name: Run Unit test
         run: yarn run test
-
-  semantic-release:
-    needs: [lint, test, coverage]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ^20
-
-      - name: Run semantic-release
-        if: github.repository == 'apache/casbin-typeorm-adapter' && github.event_name == 'push'
-        run: |
-          yarn install
-          yarn run prepublish
-          yarn run release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
